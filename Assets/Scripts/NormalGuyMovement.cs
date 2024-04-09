@@ -1,16 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 public class NormalGuyController : MonoBehaviour
 {
     PlayerInput playerInput;
     InputAction moveAction;
-    private Rigidbody rb;
-    private Collider cd;
-    private float distanceToTheGround;
+    public Rigidbody rb;
+    public Collider cd;
+    public Transform orientation;
+    public float distanceToTheGround;
+    public float moveSpeed;
 
     // Start is called before the first frame update
     void Start()
@@ -26,14 +30,18 @@ public class NormalGuyController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+    }
+
+    private void FixedUpdate()
+    {
         MovePlayer();
-        
     }
 
     private void OnJump()
     {
 
-        if (CheckGround()) 
+        if (CheckGround())
         {
             rb.AddForce(Vector2.up * 7, ForceMode.Impulse);
         }
@@ -42,9 +50,12 @@ public class NormalGuyController : MonoBehaviour
     private void MovePlayer()
     {
         Vector2 direction = moveAction.ReadValue<Vector2>();
-        rb.AddForce(direction.x, 0, direction.y);
-        
-        
+
+        Vector3 moveDirection = orientation.forward * direction.y + orientation.right * direction.x;
+
+        rb.AddForce(moveDirection * moveSpeed);
+
+
     }
 
     public bool CheckGround()
