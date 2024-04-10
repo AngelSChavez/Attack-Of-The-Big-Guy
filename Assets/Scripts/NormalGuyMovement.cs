@@ -13,7 +13,7 @@ public class NormalGuyController : MonoBehaviour
     public Rigidbody rb;
     public Collider cd;
     public Transform orientation;
-    public float distanceToTheGround;
+    float distanceToTheGround;
     public float moveSpeed;
 
     // Start is called before the first frame update
@@ -30,21 +30,36 @@ public class NormalGuyController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        
     }
 
     private void FixedUpdate()
     {
-        MovePlayer();
+        //MovePlayer();
+        //SpeedControl();
+
+        if (CheckGround()) //if on the ground, add ground drag (otherwise it plays like an ice level in mario)
+        {
+            MovePlayer();
+            SpeedControl();
+            rb.drag = 6;
+        }
+        else //if in the air, have less drag (air resistance)
+        {
+            MovePlayerAir();
+            SpeedControl();
+            rb.drag = 0;
+        }
+
     }
 
     private void OnJump()
     {
-
         if (CheckGround())
         {
             rb.AddForce(Vector2.up * 7, ForceMode.Impulse);
         }
+
     }
 
     private void MovePlayer()
@@ -53,9 +68,32 @@ public class NormalGuyController : MonoBehaviour
 
         Vector3 moveDirection = orientation.forward * direction.y + orientation.right * direction.x;
 
-        rb.AddForce(moveDirection * moveSpeed);
+        //rb.velocity = moveDirection * moveSpeed;
+        
+        rb.AddForce(moveDirection * moveSpeed, ForceMode.VelocityChange);
 
+    }
 
+    private void MovePlayerAir()
+    {
+        Vector2 direction = moveAction.ReadValue<Vector2>();
+
+        Vector3 moveDirection = orientation.forward * direction.y + orientation.right * direction.x;
+
+        rb.AddForce(moveDirection * moveSpeed, ForceMode.VelocityChange);
+
+    }
+
+    private void SpeedControl()
+    {
+        Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+
+        if (flatVel.magnitude > moveSpeed)
+        {
+            Vector3 limitedVel = flatVel.normalized * moveSpeed;
+            rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
+        }
+        
     }
 
     public bool CheckGround()
@@ -63,6 +101,5 @@ public class NormalGuyController : MonoBehaviour
         distanceToTheGround = cd.bounds.extents.y;
         return Physics.Raycast(transform.position, Vector3.down, distanceToTheGround + 0.1f);
     }
-
 
 }
