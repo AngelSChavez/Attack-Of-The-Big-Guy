@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class NormalPlayer2Controller : MonoBehaviour
+public class NormalPlayerController : MonoBehaviour
 {
 
     public Transform playerCamera; //Object by which the camera is controlled
@@ -16,7 +16,6 @@ public class NormalPlayer2Controller : MonoBehaviour
     PlayerInput playerInput; //Input System for Player
     InputAction moveAction; //Stores movement values from input system
     public Rigidbody rb;
-    public float moveSpeed; //Player Move Speed
 
     public Collider cd;
     float distanceToTheGround;
@@ -45,16 +44,16 @@ public class NormalPlayer2Controller : MonoBehaviour
     private void FixedUpdate()
     {
         playerRotate();
-        MovePlayer();
-        SpeedControl();
-        
+
         if (CheckGround()) //if on the ground, add ground drag (otherwise it plays like an ice level in mario)
         {
+            MovePlayer();
             rb.drag = 6;
         }
         else //if in the air, have no drag (affects gravity)
         {
-            rb.drag = 0;
+            MovePlayerAir();
+            rb.drag = 0; //Air resistance calculated in MovePlayerAir method (to avoid affecting gravity)
         }
 
     }
@@ -87,19 +86,20 @@ public class NormalPlayer2Controller : MonoBehaviour
 
         Vector3 moveDirection = playerModel.forward * direction.y + playerModel.right * direction.x;
 
-        rb.AddForce(moveDirection * moveSpeed, ForceMode.VelocityChange);
+        rb.AddForce(moveDirection * 75, ForceMode.Force);
 
     }
 
-    private void SpeedControl() //Limits player speed
+    private void MovePlayerAir()
     {
-        Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+        Vector2 direction = moveAction.ReadValue<Vector2>();
 
-        if (flatVel.magnitude > moveSpeed)
-        {
-            Vector3 limitedVel = flatVel.normalized * moveSpeed;
-            rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
-        }
+        Vector3 moveDirection = playerModel.forward * direction.y + playerModel.right * direction.x;
+
+        rb.AddForce(moveDirection / 4, ForceMode.VelocityChange);
+
+        Vector3 airDrag = new Vector3(-rb.velocity.x, 0f, -rb.velocity.z);
+        rb.AddForce(airDrag * 1, ForceMode.Acceleration);
 
     }
 
