@@ -47,21 +47,14 @@ public class NormalPlayerController : MonoBehaviour
     {
         playerRotate();
 
-        if (CheckGround()) //if on the ground, add ground drag (otherwise it plays like an ice level in mario)
+        if (CheckGround() || CheckSlope()) //if on the ground/slope, add drag (otherwise it plays like an ice level in mario)
         {
-            Debug.Log("On Ground");
-            MovePlayer();
-            rb.drag = 6;
-        }
-        else if (CheckSlope())
-        {
-            Debug.Log("On Slope");
+            //Debug.Log("On Ground");
             MovePlayer();
             rb.drag = 6;
         }
         else //if in the air, have no drag (affects gravity)
         {
-            Debug.Log("In Air");
             MovePlayerAir();
             rb.drag = 0; //Air resistance calculated in MovePlayerAir method (to avoid affecting gravity)
         }
