@@ -19,6 +19,8 @@ public class NormalPlayerController : MonoBehaviour
 
     public Collider cd;
     float distanceToTheGround;
+    float distanceToSlope;
+    private RaycastHit slopeHit;
 
 
     // Start is called before the first frame update
@@ -47,14 +49,24 @@ public class NormalPlayerController : MonoBehaviour
 
         if (CheckGround()) //if on the ground, add ground drag (otherwise it plays like an ice level in mario)
         {
+            Debug.Log("On Ground");
+            MovePlayer();
+            rb.drag = 6;
+        }
+        else if (CheckSlope())
+        {
+            Debug.Log("On Slope");
             MovePlayer();
             rb.drag = 6;
         }
         else //if in the air, have no drag (affects gravity)
         {
+            Debug.Log("In Air");
             MovePlayerAir();
             rb.drag = 0; //Air resistance calculated in MovePlayerAir method (to avoid affecting gravity)
         }
+
+        rb.useGravity = !CheckSlope();
 
     }
 
@@ -103,9 +115,13 @@ public class NormalPlayerController : MonoBehaviour
 
     }
 
-    private void OnJump() //Jumps if you're on the ground
+    private void OnJump() //Jumps if you're on the ground or a slope
     {
         if (CheckGround())
+        {
+            rb.AddForce(Vector2.up * 7, ForceMode.Impulse);
+        }
+        else if (CheckSlope()) //Low angle slopes count as both ground and slope, else stops jump force from stacking 
         {
             rb.AddForce(Vector2.up * 7, ForceMode.Impulse);
         }
@@ -116,6 +132,18 @@ public class NormalPlayerController : MonoBehaviour
     {
         distanceToTheGround = cd.bounds.extents.y;
         return Physics.Raycast(transform.position, Vector3.down, distanceToTheGround + 0.1f);
+    }
+
+    public bool CheckSlope()
+    {
+        distanceToSlope = cd.bounds.extents.y;
+        if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, distanceToSlope + 0.3f))
+        {
+            float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
+            return angle < 45 && angle != 0;
+        }
+
+        return false;
     }
 
 }
