@@ -43,15 +43,19 @@ public class NormalPlayerController : MonoBehaviour
         mouseLook();
     }
 
-    private void FixedUpdate()
+    void FixedUpdate()
     {
         playerRotate();
 
-        if (CheckGround() || CheckSlope()) //if on the ground/slope, add drag (otherwise it plays like an ice level in mario)
+        if (CheckGround()) //if on the ground/slope, add drag (otherwise it plays like an ice level in mario)
         {
-            //Debug.Log("On Ground");
             MovePlayer();
             rb.drag = 6;
+        }
+        else if (CheckSlope())
+        {
+            MovePlayerSlope();
+            rb.drag = 7; //it's harder to move up slopes, so more drag
         }
         else //if in the air, have no drag (affects gravity)
         {
@@ -95,6 +99,13 @@ public class NormalPlayerController : MonoBehaviour
 
     }
 
+    private void MovePlayerSlope()
+    {
+
+        rb.AddForce(slopeAngle() * 75, ForceMode.Force);
+
+    }
+
     private void MovePlayerAir()
     {
         Vector2 direction = moveAction.ReadValue<Vector2>();
@@ -110,24 +121,20 @@ public class NormalPlayerController : MonoBehaviour
 
     private void OnJump() //Jumps if you're on the ground or a slope
     {
-        if (CheckGround())
-        {
-            rb.AddForce(Vector2.up * 7, ForceMode.Impulse);
-        }
-        else if (CheckSlope()) //Low angle slopes count as both ground and slope, else stops jump force from stacking 
+        if (CheckGround() || CheckSlope())
         {
             rb.AddForce(Vector2.up * 7, ForceMode.Impulse);
         }
 
     }
 
-    public bool CheckGround()
+    private bool CheckGround()
     {
         distanceToTheGround = cd.bounds.extents.y;
         return Physics.Raycast(transform.position, Vector3.down, distanceToTheGround + 0.1f);
     }
 
-    public bool CheckSlope()
+    private bool CheckSlope()
     {
         distanceToSlope = cd.bounds.extents.y;
         if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, distanceToSlope + 0.3f))
@@ -137,6 +144,15 @@ public class NormalPlayerController : MonoBehaviour
         }
 
         return false;
+    }
+
+    private Vector3 slopeAngle()
+    {
+        Vector2 direction = moveAction.ReadValue<Vector2>();
+
+        Vector3 moveDirection = playerModel.forward * direction.y + playerModel.right * direction.x;
+
+        return Vector3.ProjectOnPlane(moveDirection, slopeHit.normal).normalized;
     }
 
 }
