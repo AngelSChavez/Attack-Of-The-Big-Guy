@@ -22,6 +22,9 @@ public class NormalPlayerController : MonoBehaviour
     float distanceToSlope;
     private RaycastHit slopeHit;
 
+    public GameObject StairChecker;
+    public GameObject FloorChecker;
+
 
     // Start is called before the first frame update
     void Start()
@@ -154,5 +157,30 @@ public class NormalPlayerController : MonoBehaviour
 
         return Vector3.ProjectOnPlane(moveDirection, slopeHit.normal).normalized;
     }
+    
+    /*
+    private void StepClimb()
+    {
+        Vector2 direction = moveAction.ReadValue<Vector2>();
+
+        Vector3 moveDirection = playerModel.forward * direction.y + playerModel.right * direction.x;
+
+        Ray fromFeet = new Ray(FloorChecker.transform.position, moveDirection);
+        Ray fromKnees = new Ray(StairChecker.transform.position, moveDirection);
+
+        RaycastHit bump;
+        if (Physics.Raycast(fromFeet, out bump, 0.6f))
+        {
+            RaycastHit stair;
+            if (!Physics.Raycast(fromKnees, out stair, 0.8f))
+            {
+                Debug.DrawLine(fromKnees.origin, stair.point);
+                rb.position -= new Vector3(0f, -15f * Time.fixedDeltaTime, 0f);
+            }
+
+        }
+    }
+    */
+
 
 }
